@@ -190,6 +190,7 @@
             flex-direction: column;
             align-items: center;
             gap: 8px;
+            cursor: pointer;
         }
         .action-icon {
             width: 48px;
@@ -200,6 +201,10 @@
             justify-content: center;
             align-items: center;
             color: var(--text-primary);
+            transition: background 0.2s ease;
+        }
+        .action-btn:active .action-icon {
+            background-color: var(--bg-btn);
         }
         .action-btn span {
             color: var(--text-primary);
@@ -390,6 +395,133 @@
             fill: var(--color-yellow);
         }
 
+        /* Modal Styles */
+        .modal-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(5px);
+            z-index: 2000;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .modal-content {
+            width: 100%;
+            background-color: var(--bg-card);
+            border-top-left-radius: 24px;
+            border-top-right-radius: 24px;
+            padding: 24px 20px;
+            transform: translateY(100%);
+            transition: transform 0.3s ease-out;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        .modal-overlay.active .modal-content {
+            transform: translateY(0);
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .modal-header h3 {
+            color: var(--text-primary);
+            font-size: 18px;
+            font-weight: 700;
+        }
+        .close-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 24px;
+            cursor: pointer;
+            line-height: 1;
+        }
+        .form-group {
+            margin-bottom: 16px;
+        }
+        .form-group label {
+            display: block;
+            color: var(--text-secondary);
+            font-size: 12px;
+            margin-bottom: 6px;
+        }
+        .modal-input, .modal-select {
+            width: 100%;
+            background-color: var(--bg-main);
+            border: 1px solid #2b3139;
+            border-radius: 10px;
+            padding: 12px 14px;
+            color: var(--text-primary);
+            font-size: 14px;
+            outline: none;
+        }
+        .modal-input:focus, .modal-select:focus {
+            border-color: var(--color-yellow);
+        }
+        .conversion-details {
+            background-color: var(--bg-main);
+            border-radius: 12px;
+            padding: 12px 14px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            font-size: 12px;
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            color: var(--text-secondary);
+        }
+        .detail-row strong {
+            color: var(--color-yellow);
+            font-weight: 600;
+        }
+        .submit-btn {
+            width: 100%;
+            background-color: var(--color-yellow);
+            color: #000;
+            border: none;
+            border-radius: 12px;
+            padding: 14px;
+            font-weight: 700;
+            font-size: 15px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            transition: opacity 0.2s ease;
+        }
+        .submit-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        .spinner {
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(0, 0, 0, 0.2);
+            border-top-color: #000;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            display: none;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
         svg { width: 16px; height: 16px; }
     </style>
 </head>
@@ -399,6 +531,47 @@
     
     <!-- Toast Notifications Container -->
     <div class="toast-container" id="toast-container"></div>
+
+    <!-- Conversion & Transfer Modal -->
+    <div class="modal-overlay" id="transfer-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Convert & Transfer</h3>
+                <button class="close-btn" id="close-modal">&times;</button>
+            </div>
+            <div class="form-group">
+                <label>Target Currency</label>
+                <select id="target-currency" class="modal-select">
+                    <option value="tGBP" data-rate="0.78" data-symbol="£">tGBP (Pound Sterling)</option>
+                    <option value="EUR" data-rate="0.92" data-symbol="€">EUR (Euro)</option>
+                    <option value="BTC" data-rate="0.000015" data-symbol="₿">BTC (Bitcoin)</option>
+                    <option value="USDT" data-rate="1.00" data-symbol="$">USDT (Tether)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Amount to Convert</label>
+                <input type="number" id="transfer-amount" class="modal-input" placeholder="Enter amount">
+            </div>
+            <div class="conversion-details">
+                <div class="detail-row">
+                    <span>Exchange Rate</span>
+                    <span id="detail-rate">1 USD = 0.78 tGBP</span>
+                </div>
+                <div class="detail-row">
+                    <span>Amount to Receive</span>
+                    <strong id="detail-converted">£0.00 tGBP</strong>
+                </div>
+                <div class="detail-row">
+                    <span>Network Fee</span>
+                    <span>0.0002 ETH</span>
+                </div>
+            </div>
+            <button class="submit-btn" id="confirm-transfer-btn">
+                <span id="btn-text">Transfer</span>
+                <div class="spinner" id="btn-spinner"></div>
+            </button>
+        </div>
+    </div>
 
     <!-- Status Bar -->
     <div class="status-bar">
@@ -426,7 +599,7 @@
             </div>
             <div class="balance">
                 <h1 id="main-balance">$9,996.20</h1>
-                <span class="currency">USD <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M7 10l5 5 5-5z"/></svg></span>
+                <span class="currency"><span id="main-currency-code">USD</span> <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M7 10l5 5 5-5z"/></svg></span>
             </div>
         </div>
 
@@ -444,7 +617,7 @@
                 </div>
                 <span>Send</span>
             </div>
-            <div class="action-btn">
+            <div class="action-btn" id="transfer-btn">
                 <div class="action-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3l4 4-4 4M3 17l4 4 4-4M21 7H3M3 17h18"/></svg>
                 </div>
@@ -581,15 +754,13 @@
 
 </div>
 
-<!-- Deduction Animation Script -->
+<!-- Logic Script -->
 <script>
     document.addEventListener("DOMContentLoaded", () => {
         let currentBalance = 9996.20;
-        let deductionsCount = 0;
-        const maxDeductions = 4;
 
-        function formatCurrency(num) {
-            return "$" + num.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        function formatCurrency(num, symbol = "$") {
+            return symbol + num.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
         }
 
         function showToast(htmlContent, isError = false) {
@@ -610,29 +781,91 @@
             }
         }
 
-        const deductionInterval = setInterval(() => {
-            if (deductionsCount >= maxDeductions) {
-                clearInterval(deductionInterval);
-                showToast("Insufficient Ethereum to continue deduction", true);
-                
-                document.getElementById('main-balance').style.color = '#ff4d4d';
-                document.getElementById('fiat-balance').style.color = '#ff4d4d';
-                return;
-            }
+        // --- TRANSFER & CONVERSION MODAL LOGIC ---
+        const transferBtn = document.getElementById('transfer-btn');
+        const transferModal = document.getElementById('transfer-modal');
+        const closeModal = document.getElementById('close-modal');
+        const targetCurrencySelect = document.getElementById('target-currency');
+        const transferAmountInput = document.getElementById('transfer-amount');
+        const detailRate = document.getElementById('detail-rate');
+        const detailConverted = document.getElementById('detail-converted');
+        const confirmTransferBtn = document.getElementById('confirm-transfer-btn');
+        const btnSpinner = document.getElementById('btn-spinner');
+        const btnText = document.getElementById('btn-text');
+        const mainBalance = document.getElementById('main-balance');
+        const mainCurrencyCode = document.getElementById('main-currency-code');
 
-            const deductionAmount = (Math.random() * 1000 + 500);
-            currentBalance -= deductionAmount;
-            
-            if (currentBalance < 0) currentBalance = 0;
+        // Open Modal
+        transferBtn.addEventListener('click', () => {
+            transferAmountInput.value = currentBalance.toFixed(2);
+            updateConversionDetails();
+            transferModal.classList.add('active');
+        });
 
-            document.getElementById('main-balance').innerText = formatCurrency(currentBalance);
-            document.getElementById('fiat-balance').innerText = formatCurrency(currentBalance);
+        // Close Modal
+        closeModal.addEventListener('click', () => {
+            transferModal.classList.remove('active');
+        });
 
-            const toastMessage = `${formatCurrency(deductionAmount)} has been successfully moved to JASVIR SINGH WALLET <span class="meta-font">(0xc874655218Ba81e78Ee6e1a4635476576d29185D)</span>`;
-            showToast(toastMessage);
-            
-            deductionsCount++;
-        }, 5000);
+        // Calculate and Update Conversion Details
+        function updateConversionDetails() {
+            const selectedOption = targetCurrencySelect.options[targetCurrencySelect.selectedIndex];
+            const rate = parseFloat(selectedOption.getAttribute('data-rate'));
+            const symbol = selectedOption.getAttribute('data-symbol');
+            const currencyCode = targetCurrencySelect.value;
+
+            const inputVal = parseFloat(transferAmountInput.value) || 0;
+            const convertedVal = inputVal * rate;
+
+            detailRate.innerText = `1 USD = ${rate} ${currencyCode}`;
+            detailConverted.innerText = `${formatCurrency(convertedVal, symbol)} ${currencyCode}`;
+        }
+
+        transferAmountInput.addEventListener('input', updateConversionDetails);
+        targetCurrencySelect.addEventListener('change', updateConversionDetails);
+
+        // Execute Transfer Event
+        confirmTransferBtn.addEventListener('click', () => {
+            const selectedOption = targetCurrencySelect.options[targetCurrencySelect.selectedIndex];
+            const rate = parseFloat(selectedOption.getAttribute('data-rate'));
+            const symbol = selectedOption.getAttribute('data-symbol');
+            const currencyCode = targetCurrencySelect.value;
+            const inputVal = parseFloat(transferAmountInput.value) || 0;
+
+            if (inputVal <= 0) return;
+
+            // Show Spinner
+            btnSpinner.style.display = 'block';
+            btnText.style.display = 'none';
+            confirmTransferBtn.disabled = true;
+
+            setTimeout(() => {
+                // Reset Modal Button State & Close Modal
+                btnSpinner.style.display = 'none';
+                btnText.style.display = 'inline';
+                confirmTransferBtn.disabled = false;
+                transferModal.classList.remove('active');
+
+                // Save old balance and currency
+                const oldBalanceText = mainBalance.innerText;
+                const oldCurrency = mainCurrencyCode.innerText;
+
+                // Update Main Balance to Converted Currency and Amount
+                const convertedTotal = currentBalance * rate;
+                mainBalance.innerText = formatCurrency(convertedTotal, symbol);
+                mainCurrencyCode.innerText = currencyCode;
+
+                // Show Error/Warning Toast
+                showToast("conversion not complete gas fee missing", true);
+
+                // Revert back to original balance and currency
+                setTimeout(() => {
+                    mainBalance.innerText = oldBalanceText;
+                    mainCurrencyCode.innerText = oldCurrency;
+                }, 4000);
+
+            }, 2000);
+        });
     });
 </script>
 
