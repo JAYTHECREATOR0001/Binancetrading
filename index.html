@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Portfolio Overview & Transfer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio Overview</title>
     <style>
         :root {
             --bg-main: #181a20;
@@ -15,7 +15,6 @@
             --color-blue: #2962ff;
             --color-yellow: #fcd535;
             --color-red: #f00606;
-            --color-tgbp: #0033a0;
             --font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             --font-meta: "Courier New", Courier, monospace;
         }
@@ -49,6 +48,43 @@
             flex-direction: column;
         }
 
+        /* Notifications / Toasts */
+        .toast-container {
+            position: absolute;
+            top: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+        }
+        .toast {
+            background-color: var(--bg-card);
+            color: var(--text-primary);
+            padding: 14px 16px;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.6);
+            font-size: 13px;
+            font-weight: 500;
+            line-height: 1.4;
+            transform: translateY(-20px);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border-left: 4px solid var(--color-blue);
+        }
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        .toast.error {
+            border-left-color: var(--color-red);
+            color: #ff4d4d;
+        }
+
+        /* iOS Status Bar */
         .status-bar {
             display: flex;
             justify-content: space-between;
@@ -58,7 +94,7 @@
             font-size: 14px;
             font-weight: 600;
             position: relative;
-            z-index: 100;
+            z-index: 3000; /* Above overlays */
         }
         .dynamic-island {
             position: absolute;
@@ -71,26 +107,16 @@
             border-radius: 20px;
         }
 
-        .screen {
-            display: none;
+        .scrollable-content {
             flex: 1;
             overflow-y: auto;
-            flex-direction: column;
-            padding: 0 16px;
+            padding: 0 16px 80px 16px;
         }
-        .screen.active {
-            display: flex;
-        }
-        
-        /* Specific screen paddings */
-        #screen-dashboard { padding-bottom: 90px; }
-        .flow-screen { padding-bottom: 24px; }
-
-        .screen::-webkit-scrollbar {
+        .scrollable-content::-webkit-scrollbar {
             display: none;
         }
 
-        /* Top Navigation for Dashboard */
+        /* Top Navigation */
         .top-nav {
             display: flex;
             gap: 20px;
@@ -135,6 +161,7 @@
             font-size: 32px;
             font-weight: 700;
             letter-spacing: -0.5px;
+            transition: color 0.3s ease;
         }
         .balance .currency {
             font-size: 14px;
@@ -239,8 +266,13 @@
             font-size: 14px;
             margin-bottom: 20px;
         }
-        .asset-item { margin-bottom: 24px; }
-        .asset-item:last-child { margin-bottom: 0; }
+        
+        .asset-item {
+            margin-bottom: 24px;
+        }
+        .asset-item:last-child {
+            margin-bottom: 0;
+        }
         .asset-main {
             display: flex;
             justify-content: space-between;
@@ -252,8 +284,6 @@
             gap: 12px;
             align-items: center;
         }
-        
-        /* Updated tGBP Icon */
         .asset-icon {
             width: 24px;
             height: 24px;
@@ -261,19 +291,41 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 14px;
+            font-size: 12px;
             font-weight: bold;
         }
-        .icon-tgbp { background-color: var(--color-tgbp); color: white; }
         .icon-fdusd { background-color: #000; border: 1px solid #333; color: white; }
-        .icon-trx { background-color: #ff0013; color: white; font-size: 12px; }
+        .icon-trx { background-color: #ff0013; color: white; }
         
-        .asset-name { display: flex; flex-direction: column; }
-        .asset-ticker { color: var(--text-primary); font-size: 15px; font-weight: 600; }
-        .asset-full { color: var(--text-secondary); font-size: 12px; }
-        .asset-amounts { text-align: right; display: flex; flex-direction: column; gap: 2px; }
-        .amount-crypto { color: var(--text-primary); font-size: 15px; font-weight: 500; }
-        .amount-fiat { color: var(--text-secondary); font-size: 12px; }
+        .asset-name {
+            display: flex;
+            flex-direction: column;
+        }
+        .asset-ticker {
+            color: var(--text-primary);
+            font-size: 15px;
+            font-weight: 600;
+        }
+        .asset-full {
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+        .asset-amounts {
+            text-align: right;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .amount-crypto {
+            color: var(--text-primary);
+            font-size: 15px;
+            font-weight: 500;
+        }
+        .amount-fiat {
+            color: var(--text-secondary);
+            font-size: 12px;
+            transition: color 0.3s ease;
+        }
         .pnl-text {
             color: var(--color-green);
             font-size: 12px;
@@ -283,7 +335,12 @@
             justify-content: space-between;
         }
         .pnl-text span:first-child { color: var(--text-secondary); }
-        .asset-actions { display: flex; justify-content: flex-end; gap: 8px; }
+        
+        .asset-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+        }
         .btn-small {
             background-color: var(--bg-btn);
             color: var(--text-primary);
@@ -295,6 +352,7 @@
             cursor: pointer;
         }
 
+        /* Bottom Navigation */
         .bottom-nav {
             position: absolute;
             bottom: 0;
@@ -306,7 +364,6 @@
             justify-content: space-around;
             padding-top: 12px;
             border-top: 1px solid rgba(255,255,255,0.05);
-            z-index: 10;
         }
         .nav-item {
             display: flex;
@@ -315,96 +372,46 @@
             gap: 4px;
             color: var(--text-secondary);
         }
-        .nav-item.active { color: var(--text-primary); }
-        .nav-item span { font-size: 10px; font-weight: 500; }
-        .nav-icon { width: 24px; height: 24px; fill: currentColor; }
-        .nav-item.active .nav-icon { fill: var(--color-yellow); }
+        .nav-item.active {
+            color: var(--text-primary);
+        }
+        .nav-item span {
+            font-size: 10px;
+            font-weight: 500;
+        }
+        .nav-icon {
+            width: 24px;
+            height: 24px;
+            fill: currentColor;
+        }
+        .nav-item.active .nav-icon {
+            fill: var(--color-yellow);
+        }
 
-        .flow-header {
-            display: flex;
-            align-items: center;
-            padding: 10px 0 24px 0;
-            gap: 16px;
+        /* Forms & Inputs Shared */
+        .form-group {
+            margin-bottom: 20px;
         }
-        .flow-header h2 {
-            color: var(--text-primary);
-            font-size: 20px;
-            font-weight: 600;
-            flex: 1;
-            text-align: center;
-            padding-right: 40px; /* offset for back button */
-        }
-        .btn-back {
-            background: none;
-            border: none;
-            color: var(--text-primary);
-            cursor: pointer;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: flex-start;
-        }
-        .form-group { margin-bottom: 20px; }
         .form-group label {
             display: block;
             color: var(--text-secondary);
             font-size: 13px;
             margin-bottom: 8px;
-            font-weight: 500;
         }
-        .input-wrapper {
-            position: relative;
-            display: flex;
-            align-items: center;
-        }
-        .form-input, .form-select {
+        .modal-input, .modal-select {
             width: 100%;
             background-color: var(--bg-card);
-            border: 1px solid var(--bg-btn);
+            border: 1px solid #2b3139;
             border-radius: 12px;
-            padding: 16px;
+            padding: 14px 16px;
             color: var(--text-primary);
             font-size: 15px;
             outline: none;
-            transition: border-color 0.2s;
         }
-        .form-input:focus, .form-select:focus {
+        .modal-input:focus, .modal-select:focus {
             border-color: var(--color-yellow);
         }
-        .btn-max {
-            position: absolute;
-            right: 12px;
-            background-color: rgba(252, 213, 53, 0.1);
-            color: var(--color-yellow);
-            border: none;
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-        .info-box {
-            background-color: var(--bg-card);
-            border-radius: 12px;
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin-bottom: 24px;
-        }
-        .info-row {
-            display: flex;
-            justify-content: space-between;
-            font-size: 13px;
-            color: var(--text-secondary);
-        }
-        .info-row strong {
-            color: var(--text-primary);
-            font-weight: 600;
-        }
-
-        .btn-primary {
+        .submit-btn {
             width: 100%;
             background-color: var(--color-yellow);
             color: #000;
@@ -418,92 +425,128 @@
             justify-content: center;
             align-items: center;
             gap: 10px;
-            margin-top: auto;
-            margin-bottom: 10px;
+            transition: opacity 0.2s ease;
+        }
+        .submit-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
         }
 
-        .scan-container {
-            flex: 1;
+        /* Send Flow Overlay Styles */
+        .send-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: var(--bg-main);
+            z-index: 2500;
+            display: none;
+            flex-direction: column;
+        }
+        .send-step {
+            display: none;
+            flex-direction: column;
+            height: 100%;
+            padding: 60px 24px 30px;
+        }
+        .send-step.active {
+            display: flex;
+        }
+        .send-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        .back-btn {
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-size: 24px;
+            margin-right: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+        .send-header h3 {
+            color: var(--text-primary);
+            font-size: 20px;
+            font-weight: 700;
+        }
+        
+        /* Face Scanner Styles */
+        .face-scanner-container {
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            flex: 1;
             text-align: center;
         }
-        .face-frame {
-            position: relative;
-            width: 180px;
-            height: 180px;
-            border-radius: 50%;
-            border: 2px dashed #444;
-            margin-bottom: 30px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
-            background-color: rgba(41, 98, 255, 0.05);
-        }
-        .face-icon {
-            width: 100px;
-            height: 100px;
-            color: var(--text-secondary);
-            opacity: 0.5;
-        }
-        .scanner-line {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 4px;
-            background: var(--color-green);
-            box-shadow: 0 0 15px 4px rgba(14, 203, 129, 0.5);
-            animation: scan 2s infinite linear;
-        }
-        @keyframes scan {
-            0% { top: 0; opacity: 0; }
-            10% { opacity: 1; }
-            90% { opacity: 1; }
-            100% { top: 100%; opacity: 0; }
-        }
-        .scan-text {
+        .face-scanner-container h3 {
             color: var(--text-primary);
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-        .scan-subtext {
-            color: var(--text-secondary);
-            font-size: 14px;
-        }
-
-        /* Success Screen */
-        .success-icon-container {
-            width: 90px;
-            height: 90px;
-            background-color: rgba(14, 203, 129, 0.1);
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-bottom: 24px;
-            color: var(--color-green);
-        }
-        .success-icon-container svg {
-            width: 50px;
-            height: 50px;
-        }
-        .success-title {
-            color: var(--text-primary);
-            font-size: 24px;
-            font-weight: 700;
+            font-size: 22px;
             margin-bottom: 12px;
         }
-        .success-message {
+        .face-scanner-container p {
             color: var(--text-secondary);
             font-size: 15px;
-            line-height: 1.5;
             margin-bottom: 40px;
-            padding: 0 20px;
+        }
+        .face-scanner-box {
+            width: 140px;
+            height: 140px;
+            border-radius: 24px;
+            border: 3px solid var(--color-blue);
+            position: relative;
+            overflow: hidden;
+            background: url('data:image/svg+xml;utf8,<svg viewBox="0 0 24 24" fill="none" stroke="%232962ff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M5 8V5h3M16 5h3v3M5 16v3h3M16 19h3v-3M9 10h.01M15 10h.01M12 14c-1.5 0-2.5-.5-3-1.5M12 14c1.5 0 2.5-.5 3-1.5"/></svg>') no-repeat center;
+            background-size: 65%;
+            box-shadow: 0 0 20px rgba(41, 98, 255, 0.15);
+        }
+        .scan-line {
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 4px;
+            background: var(--color-green);
+            box-shadow: 0 0 15px var(--color-green);
+            animation: scanAnim 1.6s infinite ease-in-out alternate;
+        }
+        @keyframes scanAnim {
+            0% { top: 0%; opacity: 0.5; }
+            50% { opacity: 1; }
+            100% { top: calc(100% - 4px); opacity: 0.5; }
+        }
+
+        /* Success Step Styles */
+        .success-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            text-align: center;
+        }
+        .success-icon {
+            width: 84px; height: 84px;
+            background: var(--color-green);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            margin-bottom: 24px;
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .success-icon svg {
+            width: 40px; height: 40px;
+            color: #000;
+        }
+        @keyframes popIn {
+            0% { transform: scale(0); }
+            100% { transform: scale(1); }
+        }
+        .success-container h3 {
+            color: var(--text-primary);
+            font-size: 24px; margin-bottom: 10px;
+        }
+        .success-container p {
+            color: var(--text-secondary);
+            font-size: 15px;
         }
 
         svg { width: 16px; height: 16px; }
@@ -517,14 +560,78 @@
     <div class="status-bar">
         <div>12:18</div>
         <div class="dynamic-island"></div>
-        <div>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px; height:16px;">
-                <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
-            </svg>
+        <div></div>
+    </div>
+
+    <!-- Toast Notifications Container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- FULL SCREEN SEND OVERLAY -->
+    <div class="send-overlay" id="send-overlay">
+        
+        <!-- Step 1: Address & Network -->
+        <div class="send-step active" id="send-step-1">
+            <div class="send-header">
+                <button class="back-btn" onclick="closeSendFlow()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="24" height="24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></button>
+                <h3>Send BTC</h3>
+            </div>
+            <div class="form-group">
+                <label>Wallet Address</label>
+                <input type="text" id="wallet-address" class="modal-input" placeholder="Long press to paste">
+            </div>
+            <div class="form-group">
+                <label>Network</label>
+                <select class="modal-select">
+                    <option>Bitcoin</option>
+                    <option>BNB Smart Chain (BEP20)</option>
+                    <option>Ethereum (ERC20)</option>
+                </select>
+            </div>
+            <div style="flex: 1;"></div>
+            <button class="submit-btn" onclick="showSendStep(2)">Next</button>
+        </div>
+
+        <!-- Step 2: Amount -->
+        <div class="send-step" id="send-step-2">
+            <div class="send-header">
+                <button class="back-btn" onclick="showSendStep(1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="24" height="24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></button>
+                <h3>Send BTC</h3>
+            </div>
+            <div class="form-group">
+                <label>Amount</label>
+                <input type="number" id="send-amount" class="modal-input" placeholder="0.00">
+                <div style="font-size:13px; color:var(--text-secondary); margin-top:8px;">Available: 0.1425 BTC</div>
+            </div>
+            <div style="flex: 1;"></div>
+            <button class="submit-btn" onclick="processSendAmount()">Send</button>
+        </div>
+
+        <!-- Step 3: Face Verification -->
+        <div class="send-step" id="send-step-3">
+            <div class="face-scanner-container">
+                <h3>Security Verification</h3>
+                <p>Please face the screen directly</p>
+                <div class="face-scanner-box">
+                    <div class="scan-line"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 4: Final Success Page -->
+        <div class="send-step" id="send-step-4">
+            <div class="success-container">
+                <div class="success-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+                </div>
+                <h3>Transaction Successful</h3>
+                <p>Your BTC transfer is processing.</p>
+            </div>
+            <button class="submit-btn" onclick="closeSendFlow()">Done</button>
         </div>
     </div>
 
-    <div class="screen active" id="screen-dashboard">
+    <!-- Main Scrollable Application -->
+    <div class="scrollable-content">
         <!-- Top Nav -->
         <div class="top-nav">
             <span class="active">Overview</span>
@@ -542,9 +649,8 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
             </div>
             <div class="balance">
-                <!-- Updated to tGBP Balance -->
-                <h1>£8,995.29</h1>
-                <span class="currency">tGBP <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M7 10l5 5 5-5z"/></svg></span>
+                <h1 id="main-balance">$8,995.29</h1>
+                <span class="currency"><span id="main-currency-code">USD</span> <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M7 10l5 5 5-5z"/></svg></span>
             </div>
         </div>
 
@@ -554,9 +660,9 @@
                 <div class="action-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
                 </div>
-                <span>Deposit</span>
+                <span>Add Funds</span>
             </div>
-            <div class="action-btn" id="btn-init-send">
+            <div class="action-btn" id="send-btn" onclick="openSendFlow()">
                 <div class="action-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
                 </div>
@@ -579,7 +685,7 @@
         <!-- Deposit History -->
         <div class="card">
             <div class="deposit-item">
-                <div class="left"><span class="dot"></span> Crypto deposit 8,995.29 tGBP</div>
+                <div class="left"><span class="dot"></span> Crypto deposit 0.1425 BTC</div>
                 <div class="right">Completed <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></div>
             </div>
             <div class="deposit-item">
@@ -607,19 +713,24 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
             </div>
             
-            <!-- Updated Primary Asset: tGBP -->
+            <!-- Bitcoin Asset Replaced here -->
             <div class="asset-item">
                 <div class="asset-main">
                     <div class="asset-info">
-                        <div class="asset-icon icon-tgbp">£</div>
+                        <div class="asset-icon" style="background: transparent;">
+                            <!-- Official BTC SVG Logo -->
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="24" height="24">
+                                <path fill="#F7931A" d="M16 32C7.163 32 0 24.837 0 16S7.163 0 16 0s16 7.163 16 16-7.163 16-16 16zm7.994-15.781c.319-2.127-1.306-3.268-3.525-4.043l.718-2.885-1.74-.433-.695 2.793c-.456-.113-.925-.221-1.396-.326l.7-2.812-1.74-.433-.719 2.887c-.381-.086-.753-.169-1.11-.252l.002-.01-2.404-.598-.465 1.87s1.294.295 1.267.316c.706.176.833.644.811 1.016l-.813 3.264c.064.015.148.041.241.082l-.246-.061-1.144 4.595c-.067.168-.239.423-.8.283.023.028-1.268-.316-1.268-.316l-.865 2.012 2.274.566c.422.105.836.216 1.242.32l-.725 2.915 1.74.433.72-2.894c.477.126.938.243 1.393.351l-.715 2.872 1.74.433.723-2.903c2.973.564 5.212.338 6.16-2.391.765-2.195-.04-3.461-1.614-4.29 1.154-.265 2.023-.996 2.247-2.545zm-3.69 4.341c-.5 2.018-3.864.931-4.947.662l.88-3.535c1.084.27 4.58.497 4.067 2.873zm.804-5.116c-.455 1.823-3.275.877-4.181.652l.794-3.19c.907.226 3.859.626 3.387 2.538z"/>
+                            </svg>
+                        </div>
                         <div class="asset-name">
-                            <span class="asset-ticker">tGBP</span>
-                            <span class="asset-full">TrueGBP</span>
+                            <span class="asset-ticker">BTC</span>
+                            <span class="asset-full">Bitcoin</span>
                         </div>
                     </div>
                     <div class="asset-amounts">
-                        <span class="amount-crypto">8,995.29</span>
-                        <span class="amount-fiat">£8,995.29</span>
+                        <span class="amount-crypto">0.14250000</span>
+                        <span class="amount-fiat" id="fiat-balance">$8,995.29</span>
                     </div>
                 </div>
                 <div class="asset-actions">
@@ -642,6 +753,10 @@
                         <span class="amount-fiat">$0.008473</span>
                     </div>
                 </div>
+                <div class="asset-actions">
+                    <button class="btn-small">Earn</button>
+                    <button class="btn-small">Trade</button>
+                </div>
             </div>
 
             <div class="asset-item">
@@ -658,113 +773,20 @@
                         <span class="amount-fiat">$0.000000</span>
                     </div>
                 </div>
+                <div class="pnl-text">
+                    <span>Unrealized PNL</span>
+                    +$0.0000001 (+147.01%)
+                </div>
+                <div class="asset-actions" style="margin-top: 12px;">
+                    <button class="btn-small">Earn</button>
+                    <button class="btn-small">Trade</button>
+                </div>
             </div>
-        </div>
-    </div>
-
-    <div class="screen flow-screen" id="screen-send-address">
-        <div class="flow-header">
-            <button class="btn-back" id="btn-back-to-dash">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:24px; height:24px;">
-                    <path d="M19 12H5M12 19l-7-7 7-7"/>
-                </svg>
-            </button>
-            <h2>Send tGBP</h2>
-        </div>
-
-        <div class="form-group">
-            <label>Wallet Address</label>
-            <input type="text" class="form-input" placeholder="Long press to paste" id="input-address">
-        </div>
-
-        <div class="form-group">
-            <label>Network</label>
-            <select class="form-select">
-                <option value="erc20">Ethereum (ERC20)</option>
-                <option value="bsc">BNB Smart Chain (BEP20)</option>
-                <option value="polygon">Polygon</option>
-            </select>
-        </div>
-
-        <div class="info-box">
-            <div class="info-row">
-                <span>Available</span>
-                <strong>8,995.29 tGBP</strong>
-            </div>
-            <div class="info-row">
-                <span>Network Fee</span>
-                <span>~0.50 tGBP</span>
-            </div>
-        </div>
-
-        <button class="btn-primary" id="btn-next-address">Next</button>
-    </div>
-
-    <div class="screen flow-screen" id="screen-send-amount">
-        <div class="flow-header">
-            <button class="btn-back" id="btn-back-to-address">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:24px; height:24px;">
-                    <path d="M19 12H5M12 19l-7-7 7-7"/>
-                </svg>
-            </button>
-            <h2>Set Amount</h2>
-        </div>
-
-        <div class="form-group">
-            <label>Amount (tGBP)</label>
-            <div class="input-wrapper">
-                <input type="number" class="form-input" placeholder="0.00" id="input-amount">
-                <button class="btn-max" id="btn-max">MAX</button>
-            </div>
-        </div>
-
-        <div class="info-box">
-            <div class="info-row">
-                <span>Sending to</span>
-                <strong id="display-address-short" style="word-break: break-all; max-width: 60%; text-align: right;">...</strong>
-            </div>
-            <div class="info-row">
-                <span>Network</span>
-                <strong>ERC20</strong>
-            </div>
-        </div>
-
-        <button class="btn-primary" id="btn-verify-send">Verify & Send</button>
-    </div>
-
-    <div class="screen flow-screen" id="screen-face-scan">
-        <div class="scan-container">
-            <div class="face-frame">
-                <!-- Face outline icon -->
-                <svg class="face-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                    <path d="M9 11h.01M15 11h.01M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path>
-                    <path d="M12 15c-1.5 0-2.5-.5-3-1M12 15c1.5 0 2.5-.5 3-1"></path>
-                    <path d="M8 7a5 5 0 0 1 8 0"></path>
-                </svg>
-                <div class="scanner-line"></div>
-            </div>
-            <div class="scan-text">Verifying Face ID...</div>
-            <div class="scan-subtext">Please keep your device still.</div>
-        </div>
-    </div>
-
-    <div class="screen flow-screen" id="screen-success">
-        <div class="scan-container">
-            <div class="success-icon-container">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-                    <path d="M20 6L9 17l-5-5"></path>
-                </svg>
-            </div>
-            <div class="success-title">Transaction Sent</div>
-            <div class="success-message" id="success-msg">
-                Successfully sent 8,995.29 tGBP. You will receive a confirmation shortly.
-            </div>
-            <button class="btn-primary" id="btn-back-home" style="margin-top: 20px;">Back to Home</button>
         </div>
     </div>
 
     <!-- Bottom Navigation -->
-    <div class="bottom-nav" id="bottom-nav">
+    <div class="bottom-nav">
         <div class="nav-item">
             <svg class="nav-icon" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
             <span>Home</span>
@@ -789,88 +811,43 @@
 
 </div>
 
+<!-- Logic Script -->
 <script>
-    document.addEventListener("DOMContentLoaded", () => {
+    // System Variables
+    const currentBalance = 8995.29;
+    const sendOverlay = document.getElementById('send-overlay');
+    const sendSteps = document.querySelectorAll('.send-step');
+
+    // --- SEND FLOW LOGIC ---
+    function openSendFlow() {
+        sendOverlay.style.display = 'flex';
+        showSendStep(1);
+    }
+
+    function closeSendFlow() {
+        sendOverlay.style.display = 'none';
+        document.getElementById('wallet-address').value = '';
+        document.getElementById('send-amount').value = '';
+    }
+
+    function showSendStep(stepNumber) {
+        // Hide all steps, then show the requested one
+        sendSteps.forEach(step => step.classList.remove('active'));
+        document.getElementById(`send-step-${stepNumber}`).classList.add('active');
+    }
+
+    function processSendAmount() {
+        const amount = document.getElementById('send-amount').value;
+        if (!amount || amount <= 0) return; // Basic validation
         
-        const bottomNav = document.getElementById('bottom-nav');
+        // Show Step 3: Face Verification Scanning
+        showSendStep(3);
         
-        // Navigation Function
-        function switchView(viewId) {
-            // Hide all screens
-            document.querySelectorAll('.screen').forEach(screen => {
-                screen.classList.remove('active');
-            });
-            // Show target screen
-            document.getElementById(viewId).classList.add('active');
-            
-            // Toggle bottom nav visibility based on active view
-            if(viewId === 'screen-dashboard') {
-                bottomNav.style.display = 'flex';
-            } else {
-                bottomNav.style.display = 'none';
-            }
-        }
-
-        // --- Event Listeners for Flow ---
-
-        // 1. Dashboard "Send" -> Address Screen
-        document.getElementById('btn-init-send').addEventListener('click', () => {
-            document.getElementById('input-address').value = '';
-            switchView('screen-send-address');
-        });
-
-        // 2. Address Screen "Back" -> Dashboard
-        document.getElementById('btn-back-to-dash').addEventListener('click', () => {
-            switchView('screen-dashboard');
-        });
-
-        // 3. Address Screen "Next" -> Amount Screen
-        document.getElementById('btn-next-address').addEventListener('click', () => {
-            const address = document.getElementById('input-address').value || 'Unknown Address';
-            // Update display address in the next screen for confirmation context
-            let shortAddress = address.length > 15 ? address.substring(0, 8) + '...' + address.substring(address.length - 6) : address;
-            document.getElementById('display-address-short').innerText = shortAddress;
-            
-            // Clear previous amount
-            document.getElementById('input-amount').value = '';
-            switchView('screen-send-amount');
-        });
-
-        // 4. Amount Screen "Back" -> Address Screen
-        document.getElementById('btn-back-to-address').addEventListener('click', () => {
-            switchView('screen-send-address');
-        });
-
-        // 5. Amount Screen "Max" Button
-        document.getElementById('btn-max').addEventListener('click', () => {
-            document.getElementById('input-amount').value = '8995.29';
-        });
-
-        // 6. Amount Screen "Verify & Send" -> Face Scan Screen
-        document.getElementById('btn-verify-send').addEventListener('click', () => {
-            const amount = document.getElementById('input-amount').value;
-            if(!amount || parseFloat(amount) <= 0) {
-                alert("Please enter a valid amount.");
-                return;
-            }
-            
-            // Set dynamic success message
-            document.getElementById('success-msg').innerText = `Successfully sent ${amount} tGBP. You will receive a confirmation shortly.`;
-            
-            // Show face scan animation
-            switchView('screen-face-scan');
-
-            // 7. Simulate verification delay (3s) -> Success Screen
-            setTimeout(() => {
-                switchView('screen-success');
-            }, 3000);
-        });
-
-        // 8. Success Screen "Back to Home" -> Dashboard
-        document.getElementById('btn-back-home').addEventListener('click', () => {
-            switchView('screen-dashboard');
-        });
-    });
+        // Simulate scanning delay, then proceed to success page
+        setTimeout(() => {
+            showSendStep(4);
+        }, 3000); // 3-second simulation
+    }
 </script>
 
 </body>
