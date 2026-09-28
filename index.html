@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portfolio Overview</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Portfolio Overview & Transfer</title>
     <style>
         :root {
             --bg-main: #181a20;
@@ -15,6 +15,7 @@
             --color-blue: #2962ff;
             --color-yellow: #fcd535;
             --color-red: #f00606;
+            --color-tgbp: #0033a0;
             --font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             --font-meta: "Courier New", Courier, monospace;
         }
@@ -48,51 +49,6 @@
             flex-direction: column;
         }
 
-        /* Notifications / Toasts */
-        .toast-container {
-            position: absolute;
-            top: 50px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 90%;
-            z-index: 1000;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            pointer-events: none;
-        }
-        .toast {
-            background-color: var(--bg-card);
-            color: var(--text-primary);
-            padding: 14px 16px;
-            border-radius: 12px;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.6);
-            font-size: 13px;
-            font-weight: 500;
-            line-height: 1.4;
-            transform: translateY(-20px);
-            opacity: 0;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            border-left: 4px solid var(--color-blue);
-        }
-        .toast.show {
-            transform: translateY(0);
-            opacity: 1;
-        }
-        .toast.error {
-            border-left-color: var(--color-red);
-            color: #ff4d4d;
-        }
-        .meta-font {
-            font-family: var(--font-meta);
-            font-size: 11px;
-            color: var(--text-secondary);
-            word-break: break-all;
-            display: block;
-            margin-top: 4px;
-        }
-
-        /* iOS Status Bar */
         .status-bar {
             display: flex;
             justify-content: space-between;
@@ -102,6 +58,7 @@
             font-size: 14px;
             font-weight: 600;
             position: relative;
+            z-index: 100;
         }
         .dynamic-island {
             position: absolute;
@@ -114,16 +71,26 @@
             border-radius: 20px;
         }
 
-        .scrollable-content {
+        .screen {
+            display: none;
             flex: 1;
             overflow-y: auto;
-            padding: 0 16px 80px 16px;
+            flex-direction: column;
+            padding: 0 16px;
         }
-        .scrollable-content::-webkit-scrollbar {
+        .screen.active {
+            display: flex;
+        }
+        
+        /* Specific screen paddings */
+        #screen-dashboard { padding-bottom: 90px; }
+        .flow-screen { padding-bottom: 24px; }
+
+        .screen::-webkit-scrollbar {
             display: none;
         }
 
-        /* Top Navigation */
+        /* Top Navigation for Dashboard */
         .top-nav {
             display: flex;
             gap: 20px;
@@ -168,7 +135,6 @@
             font-size: 32px;
             font-weight: 700;
             letter-spacing: -0.5px;
-            transition: color 0.3s ease;
         }
         .balance .currency {
             font-size: 14px;
@@ -273,13 +239,8 @@
             font-size: 14px;
             margin-bottom: 20px;
         }
-        
-        .asset-item {
-            margin-bottom: 24px;
-        }
-        .asset-item:last-child {
-            margin-bottom: 0;
-        }
+        .asset-item { margin-bottom: 24px; }
+        .asset-item:last-child { margin-bottom: 0; }
         .asset-main {
             display: flex;
             justify-content: space-between;
@@ -291,6 +252,8 @@
             gap: 12px;
             align-items: center;
         }
+        
+        /* Updated tGBP Icon */
         .asset-icon {
             width: 24px;
             height: 24px;
@@ -298,42 +261,19 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 12px;
+            font-size: 14px;
             font-weight: bold;
         }
-        .icon-shib { background-color: #f00606; color: white; }
+        .icon-tgbp { background-color: var(--color-tgbp); color: white; }
         .icon-fdusd { background-color: #000; border: 1px solid #333; color: white; }
-        .icon-trx { background-color: #ff0013; color: white; }
+        .icon-trx { background-color: #ff0013; color: white; font-size: 12px; }
         
-        .asset-name {
-            display: flex;
-            flex-direction: column;
-        }
-        .asset-ticker {
-            color: var(--text-primary);
-            font-size: 15px;
-            font-weight: 600;
-        }
-        .asset-full {
-            color: var(--text-secondary);
-            font-size: 12px;
-        }
-        .asset-amounts {
-            text-align: right;
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-        }
-        .amount-crypto {
-            color: var(--text-primary);
-            font-size: 15px;
-            font-weight: 500;
-        }
-        .amount-fiat {
-            color: var(--text-secondary);
-            font-size: 12px;
-            transition: color 0.3s ease;
-        }
+        .asset-name { display: flex; flex-direction: column; }
+        .asset-ticker { color: var(--text-primary); font-size: 15px; font-weight: 600; }
+        .asset-full { color: var(--text-secondary); font-size: 12px; }
+        .asset-amounts { text-align: right; display: flex; flex-direction: column; gap: 2px; }
+        .amount-crypto { color: var(--text-primary); font-size: 15px; font-weight: 500; }
+        .amount-fiat { color: var(--text-secondary); font-size: 12px; }
         .pnl-text {
             color: var(--color-green);
             font-size: 12px;
@@ -343,12 +283,7 @@
             justify-content: space-between;
         }
         .pnl-text span:first-child { color: var(--text-secondary); }
-        
-        .asset-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 8px;
-        }
+        .asset-actions { display: flex; justify-content: flex-end; gap: 8px; }
         .btn-small {
             background-color: var(--bg-btn);
             color: var(--text-primary);
@@ -357,9 +292,9 @@
             font-size: 12px;
             font-weight: 600;
             border: none;
+            cursor: pointer;
         }
 
-        /* Bottom Navigation */
         .bottom-nav {
             position: absolute;
             bottom: 0;
@@ -371,6 +306,7 @@
             justify-content: space-around;
             padding-top: 12px;
             border-top: 1px solid rgba(255,255,255,0.05);
+            z-index: 10;
         }
         .nav-item {
             display: flex;
@@ -379,147 +315,195 @@
             gap: 4px;
             color: var(--text-secondary);
         }
-        .nav-item.active {
-            color: var(--text-primary);
-        }
-        .nav-item span {
-            font-size: 10px;
-            font-weight: 500;
-        }
-        .nav-icon {
-            width: 24px;
-            height: 24px;
-            fill: currentColor;
-        }
-        .nav-item.active .nav-icon {
-            fill: var(--color-yellow);
-        }
+        .nav-item.active { color: var(--text-primary); }
+        .nav-item span { font-size: 10px; font-weight: 500; }
+        .nav-icon { width: 24px; height: 24px; fill: currentColor; }
+        .nav-item.active .nav-icon { fill: var(--color-yellow); }
 
-        /* Modal Styles */
-        .modal-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.75);
-            backdrop-filter: blur(5px);
-            z-index: 2000;
+        .flow-header {
             display: flex;
-            justify-content: center;
-            align-items: flex-end;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
-        }
-        .modal-overlay.active {
-            opacity: 1;
-            pointer-events: auto;
-        }
-        .modal-content {
-            width: 100%;
-            background-color: var(--bg-card);
-            border-top-left-radius: 24px;
-            border-top-right-radius: 24px;
-            padding: 24px 20px;
-            transform: translateY(100%);
-            transition: transform 0.3s ease-out;
-            border-top: 1px solid rgba(255,255,255,0.1);
-        }
-        .modal-overlay.active .modal-content {
-            transform: translateY(0);
-        }
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            padding: 10px 0 24px 0;
+            gap: 16px;
         }
-        .modal-header h3 {
+        .flow-header h2 {
             color: var(--text-primary);
-            font-size: 18px;
-            font-weight: 700;
+            font-size: 20px;
+            font-weight: 600;
+            flex: 1;
+            text-align: center;
+            padding-right: 40px; /* offset for back button */
         }
-        .close-btn {
+        .btn-back {
             background: none;
             border: none;
-            color: var(--text-secondary);
-            font-size: 24px;
+            color: var(--text-primary);
             cursor: pointer;
-            line-height: 1;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
         }
-        .form-group {
-            margin-bottom: 16px;
-        }
+        .form-group { margin-bottom: 20px; }
         .form-group label {
             display: block;
             color: var(--text-secondary);
-            font-size: 12px;
-            margin-bottom: 6px;
+            font-size: 13px;
+            margin-bottom: 8px;
+            font-weight: 500;
         }
-        .modal-input, .modal-select {
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .form-input, .form-select {
             width: 100%;
-            background-color: var(--bg-main);
-            border: 1px solid #2b3139;
-            border-radius: 10px;
-            padding: 12px 14px;
+            background-color: var(--bg-card);
+            border: 1px solid var(--bg-btn);
+            border-radius: 12px;
+            padding: 16px;
             color: var(--text-primary);
-            font-size: 14px;
+            font-size: 15px;
             outline: none;
+            transition: border-color 0.2s;
         }
-        .modal-input:focus, .modal-select:focus {
+        .form-input:focus, .form-select:focus {
             border-color: var(--color-yellow);
         }
-        .conversion-details {
-            background-color: var(--bg-main);
+        .btn-max {
+            position: absolute;
+            right: 12px;
+            background-color: rgba(252, 213, 53, 0.1);
+            color: var(--color-yellow);
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .info-box {
+            background-color: var(--bg-card);
             border-radius: 12px;
-            padding: 12px 14px;
-            margin-bottom: 20px;
+            padding: 16px;
             display: flex;
             flex-direction: column;
-            gap: 10px;
-            font-size: 12px;
+            gap: 12px;
+            margin-bottom: 24px;
         }
-        .detail-row {
+        .info-row {
             display: flex;
             justify-content: space-between;
+            font-size: 13px;
             color: var(--text-secondary);
         }
-        .detail-row strong {
-            color: var(--color-yellow);
+        .info-row strong {
+            color: var(--text-primary);
             font-weight: 600;
         }
-        .submit-btn {
+
+        .btn-primary {
             width: 100%;
             background-color: var(--color-yellow);
             color: #000;
             border: none;
             border-radius: 12px;
-            padding: 14px;
+            padding: 16px;
             font-weight: 700;
-            font-size: 15px;
+            font-size: 16px;
             cursor: pointer;
             display: flex;
             justify-content: center;
             align-items: center;
             gap: 10px;
-            transition: opacity 0.2s ease;
+            margin-top: auto;
+            margin-bottom: 10px;
         }
-        .submit-btn:disabled {
-            opacity: 0.7;
-            cursor: not-allowed;
+
+        .scan-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
         }
-        .spinner {
-            width: 18px;
-            height: 18px;
-            border: 2px solid rgba(0, 0, 0, 0.2);
-            border-top-color: #000;
+        .face-frame {
+            position: relative;
+            width: 180px;
+            height: 180px;
             border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            display: none;
+            border: 2px dashed #444;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            background-color: rgba(41, 98, 255, 0.05);
         }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+        .face-icon {
+            width: 100px;
+            height: 100px;
+            color: var(--text-secondary);
+            opacity: 0.5;
+        }
+        .scanner-line {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--color-green);
+            box-shadow: 0 0 15px 4px rgba(14, 203, 129, 0.5);
+            animation: scan 2s infinite linear;
+        }
+        @keyframes scan {
+            0% { top: 0; opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { top: 100%; opacity: 0; }
+        }
+        .scan-text {
+            color: var(--text-primary);
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .scan-subtext {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        /* Success Screen */
+        .success-icon-container {
+            width: 90px;
+            height: 90px;
+            background-color: rgba(14, 203, 129, 0.1);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 24px;
+            color: var(--color-green);
+        }
+        .success-icon-container svg {
+            width: 50px;
+            height: 50px;
+        }
+        .success-title {
+            color: var(--text-primary);
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+        .success-message {
+            color: var(--text-secondary);
+            font-size: 15px;
+            line-height: 1.5;
+            margin-bottom: 40px;
+            padding: 0 20px;
         }
 
         svg { width: 16px; height: 16px; }
@@ -529,58 +513,18 @@
 
 <div class="phone-container">
     
-    <!-- Toast Notifications Container -->
-    <div class="toast-container" id="toast-container"></div>
-
-    <!-- Conversion & Transfer Modal -->
-    <div class="modal-overlay" id="transfer-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Convert & Transfer</h3>
-                <button class="close-btn" id="close-modal">&times;</button>
-            </div>
-            <div class="form-group">
-                <label>Target Currency</label>
-                <select id="target-currency" class="modal-select">
-                    <option value="tGBP" data-rate="0.78" data-symbol="£">tGBP (Pound Sterling)</option>
-                    <option value="EUR" data-rate="0.92" data-symbol="€">EUR (Euro)</option>
-                    <option value="BTC" data-rate="0.000015" data-symbol="₿">BTC (Bitcoin)</option>
-                    <option value="USDT" data-rate="1.00" data-symbol="$">USDT (Tether)</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Amount to Convert</label>
-                <input type="number" id="transfer-amount" class="modal-input" placeholder="Enter amount">
-            </div>
-            <div class="conversion-details">
-                <div class="detail-row">
-                    <span>Exchange Rate</span>
-                    <span id="detail-rate">1 USD = 0.78 tGBP</span>
-                </div>
-                <div class="detail-row">
-                    <span>Amount to Receive</span>
-                    <strong id="detail-converted">£0.00 tGBP</strong>
-                </div>
-                <div class="detail-row">
-                    <span>Network Fee</span>
-                    <span>0.0002 ETH</span>
-                </div>
-            </div>
-            <button class="submit-btn" id="confirm-transfer-btn">
-                <span id="btn-text">Transfer</span>
-                <div class="spinner" id="btn-spinner"></div>
-            </button>
-        </div>
-    </div>
-
     <!-- Status Bar -->
     <div class="status-bar">
         <div>12:18</div>
         <div class="dynamic-island"></div>
-        <div></div>
+        <div>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px; height:16px;">
+                <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+            </svg>
+        </div>
     </div>
 
-    <div class="scrollable-content">
+    <div class="screen active" id="screen-dashboard">
         <!-- Top Nav -->
         <div class="top-nav">
             <span class="active">Overview</span>
@@ -598,8 +542,9 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
             </div>
             <div class="balance">
-                <h1 id="main-balance">$9,996.20</h1>
-                <span class="currency"><span id="main-currency-code">USD</span> <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M7 10l5 5 5-5z"/></svg></span>
+                <!-- Updated to tGBP Balance -->
+                <h1>£8,995.29</h1>
+                <span class="currency">tGBP <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M7 10l5 5 5-5z"/></svg></span>
             </div>
         </div>
 
@@ -609,15 +554,15 @@
                 <div class="action-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
                 </div>
-                <span>Add Funds</span>
+                <span>Deposit</span>
             </div>
-            <div class="action-btn">
+            <div class="action-btn" id="btn-init-send">
                 <div class="action-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
                 </div>
                 <span>Send</span>
             </div>
-            <div class="action-btn" id="transfer-btn">
+            <div class="action-btn">
                 <div class="action-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3l4 4-4 4M3 17l4 4 4-4M21 7H3M3 17h18"/></svg>
                 </div>
@@ -634,7 +579,7 @@
         <!-- Deposit History -->
         <div class="card">
             <div class="deposit-item">
-                <div class="left"><span class="dot"></span> Crypto deposit 2,500,000,000 SHIB</div>
+                <div class="left"><span class="dot"></span> Crypto deposit 8,995.29 tGBP</div>
                 <div class="right">Completed <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></div>
             </div>
             <div class="deposit-item">
@@ -662,18 +607,19 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
             </div>
             
+            <!-- Updated Primary Asset: tGBP -->
             <div class="asset-item">
                 <div class="asset-main">
                     <div class="asset-info">
-                        <div class="asset-icon icon-shib">S</div>
+                        <div class="asset-icon icon-tgbp">£</div>
                         <div class="asset-name">
-                            <span class="asset-ticker">SHIB</span>
-                            <span class="asset-full">Shiba Inu</span>
+                            <span class="asset-ticker">tGBP</span>
+                            <span class="asset-full">TrueGBP</span>
                         </div>
                     </div>
                     <div class="asset-amounts">
-                        <span class="amount-crypto">2,500,000,000</span>
-                        <span class="amount-fiat" id="fiat-balance">$9,996.20</span>
+                        <span class="amount-crypto">8,995.29</span>
+                        <span class="amount-fiat">£8,995.29</span>
                     </div>
                 </div>
                 <div class="asset-actions">
@@ -696,10 +642,6 @@
                         <span class="amount-fiat">$0.008473</span>
                     </div>
                 </div>
-                <div class="asset-actions">
-                    <button class="btn-small">Earn</button>
-                    <button class="btn-small">Trade</button>
-                </div>
             </div>
 
             <div class="asset-item">
@@ -716,20 +658,113 @@
                         <span class="amount-fiat">$0.000000</span>
                     </div>
                 </div>
-                <div class="pnl-text">
-                    <span>Unrealized PNL</span>
-                    +$0.0000001 (+147.01%)
-                </div>
-                <div class="asset-actions" style="margin-top: 12px;">
-                    <button class="btn-small">Earn</button>
-                    <button class="btn-small">Trade</button>
-                </div>
             </div>
         </div>
     </div>
 
+    <div class="screen flow-screen" id="screen-send-address">
+        <div class="flow-header">
+            <button class="btn-back" id="btn-back-to-dash">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:24px; height:24px;">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+            </button>
+            <h2>Send tGBP</h2>
+        </div>
+
+        <div class="form-group">
+            <label>Wallet Address</label>
+            <input type="text" class="form-input" placeholder="Long press to paste" id="input-address">
+        </div>
+
+        <div class="form-group">
+            <label>Network</label>
+            <select class="form-select">
+                <option value="erc20">Ethereum (ERC20)</option>
+                <option value="bsc">BNB Smart Chain (BEP20)</option>
+                <option value="polygon">Polygon</option>
+            </select>
+        </div>
+
+        <div class="info-box">
+            <div class="info-row">
+                <span>Available</span>
+                <strong>8,995.29 tGBP</strong>
+            </div>
+            <div class="info-row">
+                <span>Network Fee</span>
+                <span>~0.50 tGBP</span>
+            </div>
+        </div>
+
+        <button class="btn-primary" id="btn-next-address">Next</button>
+    </div>
+
+    <div class="screen flow-screen" id="screen-send-amount">
+        <div class="flow-header">
+            <button class="btn-back" id="btn-back-to-address">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:24px; height:24px;">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+            </button>
+            <h2>Set Amount</h2>
+        </div>
+
+        <div class="form-group">
+            <label>Amount (tGBP)</label>
+            <div class="input-wrapper">
+                <input type="number" class="form-input" placeholder="0.00" id="input-amount">
+                <button class="btn-max" id="btn-max">MAX</button>
+            </div>
+        </div>
+
+        <div class="info-box">
+            <div class="info-row">
+                <span>Sending to</span>
+                <strong id="display-address-short" style="word-break: break-all; max-width: 60%; text-align: right;">...</strong>
+            </div>
+            <div class="info-row">
+                <span>Network</span>
+                <strong>ERC20</strong>
+            </div>
+        </div>
+
+        <button class="btn-primary" id="btn-verify-send">Verify & Send</button>
+    </div>
+
+    <div class="screen flow-screen" id="screen-face-scan">
+        <div class="scan-container">
+            <div class="face-frame">
+                <!-- Face outline icon -->
+                <svg class="face-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M9 11h.01M15 11h.01M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path>
+                    <path d="M12 15c-1.5 0-2.5-.5-3-1M12 15c1.5 0 2.5-.5 3-1"></path>
+                    <path d="M8 7a5 5 0 0 1 8 0"></path>
+                </svg>
+                <div class="scanner-line"></div>
+            </div>
+            <div class="scan-text">Verifying Face ID...</div>
+            <div class="scan-subtext">Please keep your device still.</div>
+        </div>
+    </div>
+
+    <div class="screen flow-screen" id="screen-success">
+        <div class="scan-container">
+            <div class="success-icon-container">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                    <path d="M20 6L9 17l-5-5"></path>
+                </svg>
+            </div>
+            <div class="success-title">Transaction Sent</div>
+            <div class="success-message" id="success-msg">
+                Successfully sent 8,995.29 tGBP. You will receive a confirmation shortly.
+            </div>
+            <button class="btn-primary" id="btn-back-home" style="margin-top: 20px;">Back to Home</button>
+        </div>
+    </div>
+
     <!-- Bottom Navigation -->
-    <div class="bottom-nav">
+    <div class="bottom-nav" id="bottom-nav">
         <div class="nav-item">
             <svg class="nav-icon" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
             <span>Home</span>
@@ -754,117 +789,86 @@
 
 </div>
 
-<!-- Logic Script -->
 <script>
     document.addEventListener("DOMContentLoaded", () => {
-        let currentBalance = 9996.20;
-
-        function formatCurrency(num, symbol = "$") {
-            return symbol + num.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-        }
-
-        function showToast(htmlContent, isError = false) {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            toast.className = `toast ${isError ? 'error' : ''}`;
-            toast.innerHTML = htmlContent;
+        
+        const bottomNav = document.getElementById('bottom-nav');
+        
+        // Navigation Function
+        function switchView(viewId) {
+            // Hide all screens
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            // Show target screen
+            document.getElementById(viewId).classList.add('active');
             
-            container.appendChild(toast);
-            
-            setTimeout(() => toast.classList.add('show'), 10);
-            
-            if (!isError) {
-                setTimeout(() => {
-                    toast.classList.remove('show');
-                    setTimeout(() => toast.remove(), 400);
-                }, 3800);
+            // Toggle bottom nav visibility based on active view
+            if(viewId === 'screen-dashboard') {
+                bottomNav.style.display = 'flex';
+            } else {
+                bottomNav.style.display = 'none';
             }
         }
 
-        // --- TRANSFER & CONVERSION MODAL LOGIC ---
-        const transferBtn = document.getElementById('transfer-btn');
-        const transferModal = document.getElementById('transfer-modal');
-        const closeModal = document.getElementById('close-modal');
-        const targetCurrencySelect = document.getElementById('target-currency');
-        const transferAmountInput = document.getElementById('transfer-amount');
-        const detailRate = document.getElementById('detail-rate');
-        const detailConverted = document.getElementById('detail-converted');
-        const confirmTransferBtn = document.getElementById('confirm-transfer-btn');
-        const btnSpinner = document.getElementById('btn-spinner');
-        const btnText = document.getElementById('btn-text');
-        const mainBalance = document.getElementById('main-balance');
-        const mainCurrencyCode = document.getElementById('main-currency-code');
+        // --- Event Listeners for Flow ---
 
-        // Open Modal
-        transferBtn.addEventListener('click', () => {
-            transferAmountInput.value = currentBalance.toFixed(2);
-            updateConversionDetails();
-            transferModal.classList.add('active');
+        // 1. Dashboard "Send" -> Address Screen
+        document.getElementById('btn-init-send').addEventListener('click', () => {
+            document.getElementById('input-address').value = '';
+            switchView('screen-send-address');
         });
 
-        // Close Modal
-        closeModal.addEventListener('click', () => {
-            transferModal.classList.remove('active');
+        // 2. Address Screen "Back" -> Dashboard
+        document.getElementById('btn-back-to-dash').addEventListener('click', () => {
+            switchView('screen-dashboard');
         });
 
-        // Calculate and Update Conversion Details
-        function updateConversionDetails() {
-            const selectedOption = targetCurrencySelect.options[targetCurrencySelect.selectedIndex];
-            const rate = parseFloat(selectedOption.getAttribute('data-rate'));
-            const symbol = selectedOption.getAttribute('data-symbol');
-            const currencyCode = targetCurrencySelect.value;
+        // 3. Address Screen "Next" -> Amount Screen
+        document.getElementById('btn-next-address').addEventListener('click', () => {
+            const address = document.getElementById('input-address').value || 'Unknown Address';
+            // Update display address in the next screen for confirmation context
+            let shortAddress = address.length > 15 ? address.substring(0, 8) + '...' + address.substring(address.length - 6) : address;
+            document.getElementById('display-address-short').innerText = shortAddress;
+            
+            // Clear previous amount
+            document.getElementById('input-amount').value = '';
+            switchView('screen-send-amount');
+        });
 
-            const inputVal = parseFloat(transferAmountInput.value) || 0;
-            const convertedVal = inputVal * rate;
+        // 4. Amount Screen "Back" -> Address Screen
+        document.getElementById('btn-back-to-address').addEventListener('click', () => {
+            switchView('screen-send-address');
+        });
 
-            detailRate.innerText = `1 USD = ${rate} ${currencyCode}`;
-            detailConverted.innerText = `${formatCurrency(convertedVal, symbol)} ${currencyCode}`;
-        }
+        // 5. Amount Screen "Max" Button
+        document.getElementById('btn-max').addEventListener('click', () => {
+            document.getElementById('input-amount').value = '8995.29';
+        });
 
-        transferAmountInput.addEventListener('input', updateConversionDetails);
-        targetCurrencySelect.addEventListener('change', updateConversionDetails);
+        // 6. Amount Screen "Verify & Send" -> Face Scan Screen
+        document.getElementById('btn-verify-send').addEventListener('click', () => {
+            const amount = document.getElementById('input-amount').value;
+            if(!amount || parseFloat(amount) <= 0) {
+                alert("Please enter a valid amount.");
+                return;
+            }
+            
+            // Set dynamic success message
+            document.getElementById('success-msg').innerText = `Successfully sent ${amount} tGBP. You will receive a confirmation shortly.`;
+            
+            // Show face scan animation
+            switchView('screen-face-scan');
 
-        // Execute Transfer Event
-        confirmTransferBtn.addEventListener('click', () => {
-            const selectedOption = targetCurrencySelect.options[targetCurrencySelect.selectedIndex];
-            const rate = parseFloat(selectedOption.getAttribute('data-rate'));
-            const symbol = selectedOption.getAttribute('data-symbol');
-            const currencyCode = targetCurrencySelect.value;
-            const inputVal = parseFloat(transferAmountInput.value) || 0;
-
-            if (inputVal <= 0) return;
-
-            // Show Spinner
-            btnSpinner.style.display = 'block';
-            btnText.style.display = 'none';
-            confirmTransferBtn.disabled = true;
-
+            // 7. Simulate verification delay (3s) -> Success Screen
             setTimeout(() => {
-                // Reset Modal Button State & Close Modal
-                btnSpinner.style.display = 'none';
-                btnText.style.display = 'inline';
-                confirmTransferBtn.disabled = false;
-                transferModal.classList.remove('active');
+                switchView('screen-success');
+            }, 3000);
+        });
 
-                // Save old balance and currency
-                const oldBalanceText = mainBalance.innerText;
-                const oldCurrency = mainCurrencyCode.innerText;
-
-                // Update Main Balance to Converted Currency and Amount
-                const convertedTotal = currentBalance * rate;
-                mainBalance.innerText = formatCurrency(convertedTotal, symbol);
-                mainCurrencyCode.innerText = currencyCode;
-
-                // Show Error/Warning Toast
-                showToast("conversion not complete gas fee missing", true);
-
-                // Revert back to original balance and currency
-                setTimeout(() => {
-                    mainBalance.innerText = oldBalanceText;
-                    mainCurrencyCode.innerText = oldCurrency;
-                }, 4000);
-
-            }, 2000);
+        // 8. Success Screen "Back to Home" -> Dashboard
+        document.getElementById('btn-back-home').addEventListener('click', () => {
+            switchView('screen-dashboard');
         });
     });
 </script>
